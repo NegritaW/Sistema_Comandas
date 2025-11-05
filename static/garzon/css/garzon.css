@@ -85,3 +85,201 @@
 .btn-accion:hover {
     background-color: #666;
 }
+
+.garzon-container, .comanda-container {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 16px;
+    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.logo { width: 72px; height:72px; border-radius:10px; margin:0 auto; }
+
+.habitaciones-grid {
+    display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-bottom: 16px;
+}
+
+.habitacion-card {
+    background:#e6e6e6; height:58px; display:flex; align-items:center; justify-content:center;
+    border-radius:12px; font-weight:700; font-size:18px; cursor:pointer;
+    transition: transform .12s, background .12s;
+}
+.habitacion-card:hover { transform: translateY(-3px); }
+.habitacion-card.selected { background:#bdbdbd; box-shadow: 0 4px 8px rgba(0,0,0,.08); }
+
+.input-container { margin:12px 0; }
+
+.botones-container { display:flex; flex-direction:column; gap:8px; }
+.btn-accion, .btn-logout { padding:10px; border-radius:10px; border:none; color:white; font-size:16px; cursor:pointer; }
+.btn-accion { background:#444; }
+.btn-logout { background:#c62828; text-decoration:none; display:inline-block; text-align:center; }
+
+.comanda-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.back-arrow { text-decoration:none; font-size:22px; margin-right:8px; color:#333; }
+.estado-comanda { font-weight:700; padding:6px 10px; border-radius:8px; }
+.estado-comanda.pendiente { background: #ffd54f; }
+.estado-comanda.enviada { background: #a5d6a7; }
+
+.tabs { display:flex; gap:6px; justify-content:center; margin:12px 0; flex-wrap:wrap; }
+.tab-btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#eee; }
+.tab-btn.active { background:#444; color:white; }
+
+.items-list { display:flex; flex-direction:column; gap:12px; padding-bottom:80px; }
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fafafa;
+    border-radius: 14px;
+    margin: 8px 0;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.plate-img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.item-info {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.plus-btn, .minus-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+.plus-btn {
+    background-color: #4CAF50;
+}
+
+.minus-btn {
+    background-color: #E53935;
+}
+
+#guardar-btn.active {
+    background-color: #43a047;
+    color: white;
+}
+
+.cantidad { font-size:14px; color:#333; }
+
+.bottom-bar {
+    position: fixed; left:50%; transform:translateX(-50%); bottom: 12px; width: 420px; max-width:95%;
+    display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 12px; background:white; border-radius:12px;
+    box-shadow:0 6px 20px rgba(0,0,0,.12);
+}
+.bottom-actions { display:flex; gap:8px; }
+
+.modal {
+    position: fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4);
+}
+.modal-content { background:white; padding:16px; border-radius:12px; width:90%; max-width:420px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+/* --- Estilo general de cada plato --- */
+.plato {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f9f9f9;
+    border-radius: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 10px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+/* --- Imagen del plato --- */
+.plato-img {
+    width: 90px;           /* 👈 controla el tamaño */
+    height: 90px;          /* 👈 proporción cuadrada */
+    object-fit: cover;     /* corta y centra la imagen sin deformarla */
+    border-radius: 12px;   /* bordes suaves */
+    flex-shrink: 0;        /* evita que se comprima al reducir ventana */
+}
+
+/* --- Información del plato --- */
+.plato-info {
+    flex: 1;
+    margin-left: 12px;
+}
+
+.plato-info h3 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.plato-info p {
+    margin: 4px 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* --- Botones de agregar / quitar --- */
+.plato-acciones {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-add, .btn-remove {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.2em;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-add {
+    background-color: #4CAF50;
+}
+
+.btn-remove {
+    background-color: #E53935;
+}
+
+.hidden {
+    display: none;
+}
+
+/* --- Cantidad debajo del botón --- */
+.cantidad {
+    font-size: 0.8em;
+    color: #333;
+}
+
+.menu-item.selected {
+    background-color: #e8f5e9;
+    border: 2px solid #4CAF50;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.menu-item.in-cart {
+    background-color: #f1f8e9;
+    border: 2px solid #81C784;
+}

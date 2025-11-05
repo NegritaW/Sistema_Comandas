@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Comanda Hab {{ comanda.numero_habitacion }}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'garzon/css/garzon.css' %}">
+
+<div class="comanda-container">
+    <div class="comanda-header">
+        <a href="{% url 'garzon_home' %}" class="back-arrow">←</a>
+        <h2>Habitación: {{ comanda.numero_habitacion }}</h2>
+        <div class="estado-comanda {% if comanda.estado == 'P' %}pendiente{% else %}enviada{% endif %}">
+            {{ comanda.get_estado_display }}
+        </div>
+    </div>
+
+    <div class="logo-container">
+        <img src="{% static 'img/abba-hotels-logo.png' %}" alt="Logo" class="logo">
+    </div>
+
+    <!-- Pestañas -->
+    <div class="tabs">
+        {% for cat in menu.keys %}
+            <button class="tab-btn" data-cat="{{ cat }}">{{ cat }}</button>
+        {% endfor %}
+    </div>
+
+    <div id="items-list" class="items-list">
+        <!-- JS llenará los items de la categoría activa -->
+        <script>
+            window.MENU = {{ menu|safe }};
+            window.COMANDA_ID = {{ comanda.id }};
+            window.CSRF_TOKEN = '{{ csrf_token }}';
+        </script>
+        <script src="{% static 'garzon/js/comanda_detail.js' %}"></script>
+    </div>
+</div>
+
+<!-- Barra inferior fija -->
+<div class="bottom-bar">
+    <div id="total-display">Total: $0</div>
+    <div class="bottom-actions">
+        <button id="enviar-btn" class="btn-logout">Enviar a Cocina</button>
+    </div>
+</div>
+
+<!-- Modal resumen -->
+<div id="modal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <h3>Resumen de Comanda</h3>
+        <div id="resumen-items"></div>
+        <div class="modal-actions">
+            <button id="confirm-send" class="btn-accion">Confirmar Envío</button>
+            <button id="cancel-send" class="btn-logout">Cancelar</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

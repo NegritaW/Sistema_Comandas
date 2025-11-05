@@ -1,38 +1,72 @@
 {% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Garzón - Lista de Habitaciones{% endblock %}
-
+{% block title %}Garzón - Habitaciones{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'garzon/css/garzon.css' %}">
+
 <div class="garzon-container">
-    <!-- Logo -->
     <div class="logo-container">
-        <img src="{% static 'img/abba-hotels-logo.png' %}" alt="Logo Restaurante" class="logo">
+        <img src="{% static 'img/abba-hotels-logo.png' %}" alt="Logo" class="logo">
     </div>
 
-    <!-- Título -->
     <h2 class="titulo">Lista de Habitaciones</h2>
 
-    <!-- Habitaciones -->
-    <div class="habitaciones-grid">
+    <div id="habitaciones-grid" class="habitaciones-grid">
         {% for numero in habitaciones %}
-            <div class="habitacion-card">
-                {{ numero }}
-            </div>
+            <div class="habitacion-card" data-num="{{ numero }}">{{ numero }}</div>
         {% endfor %}
     </div>
 
-    <!-- Input manual -->
-    <div class="input-container">
-        <label for="numero_habitacion">Ingrese el número de la Habitación:</label>
-        <input type="number" id="numero_habitacion" name="numero_habitacion" placeholder="Ej: 1-40" min="1" max="40">
-    </div>
+    <form id="crear-form" method="post" action="{% url 'garzon_crear_comanda' %}">
+        {% csrf_token %}
+        <div class="input-container">
+            <label for="numero_habitacion">Ingrese el número de la Habitación:</label><br>
+            <input type="number" id="numero_habitacion" name="numero_habitacion" placeholder="Ej: 1-40" min="1" max="40" style="text-align:center;">
+        </div>
 
-    <!-- Botones -->
-    <div class="botones-container">
-        <button class="btn-accion">Gestionar Comanda</button>
-        <button class="btn-accion">Cliente Externo</button>
-        <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión</a>
-    </div>
+        <div class="botones-container">
+            <button id="btn-gestionar" class="btn-accion" type="submit" disabled>Gestionar Comanda</button>
+            <button type="button" class="btn-accion">Cliente Externo</button>
+            <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </form>
 </div>
+
+<script>
+(function(){
+    const cards = document.querySelectorAll('.habitacion-card');
+    const input = document.getElementById('numero_habitacion');
+    const btnGestionar = document.getElementById('btn-gestionar');
+
+    let selected = null;
+
+    function setSelected(num, el) {
+        selected = num;
+        cards.forEach(c => c.classList.remove('selected'));
+        if (el) el.classList.add('selected');
+        input.value = num;
+        btnGestionar.disabled = false;
+    }
+
+    cards.forEach(c => {
+        c.addEventListener('click', () => {
+            const num = c.dataset.num;
+            setSelected(num, c);
+        });
+    });
+
+    // Si editan input manualmente, limpiala selección de tarjetas y permitir submit
+    input.addEventListener('input', () => {
+        const v = input.value;
+        if (v && +v >= 1 && +v <= 40) {
+            cards.forEach(c => c.classList.remove('selected'));
+            selected = v;
+            btnGestionar.disabled = false;
+        } else {
+            btnGestionar.disabled = true;
+        }
+    });
+})();
+</script>
+
 {% endblock %}

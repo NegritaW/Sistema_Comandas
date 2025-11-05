@@ -56,15 +56,6 @@ def registro_view(request):
 
 # --- HOME por rol (todas usan el mismo template "home.html") ---
 @login_required
-def home_garzon(request):
-    return render(request, 'home.html', {
-        'titulo': 'Panel Garzón 🍽️',
-        'mensaje': f'Bienvenido {request.user.nombre_completo}, aquí verás tus pedidos y mesas.',
-        'rol': 'garzon'
-    })
-
-
-@login_required
 def home_cocina(request):
     return render(request, 'home.html', {
         'titulo': 'Panel Cocina 🔪',
