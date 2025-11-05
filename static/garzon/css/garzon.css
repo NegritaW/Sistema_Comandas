@@ -1,0 +1,87 @@
+.garzon-container {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+}
+
+.titulo {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.habitaciones-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    justify-items: center;
+    margin-bottom: 25px;
+}
+
+.habitacion-card {
+    width: 60px;
+    height: 60px;
+    background-color: #e0e0e0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    transition: 0.2s;
+}
+
+.habitacion-card:hover {
+    background-color: #d0d0d0;
+    cursor: pointer;
+}
+
+.input-container {
+    margin-bottom: 20px;
+}
+
+.input-container input {
+    width: 80%;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.botones-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-accion, .btn-logout {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-logout {
+    background-color: #c62828;
+}
+
+.btn-accion:hover {
+    background-color: #666;
+}

@@ -9,7 +9,7 @@ from .forms import RegistroForm
 def redirect_by_role(user):
     rol = (user.rol or "").lower()
     if rol == "garzon":
-        return 'home_garzon'
+        return 'garzon_home'
     if rol == "cocina":
         return 'home_cocina'
     if rol == "gerencia":
