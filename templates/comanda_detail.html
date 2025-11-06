@@ -1,13 +1,30 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Comanda Hab {{ comanda.numero_habitacion }}{% endblock %}
+{% block title %}
+    {% if comanda.numero_habitacion %}
+        Comanda Hab {{ comanda.numero_habitacion }}
+    {% elif comanda.cliente_externo %}
+        Comanda {{ comanda.cliente_externo.nombre }}
+    {% else %}
+        Comanda
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="{% static 'garzon/css/garzon.css' %}">
 
 <div class="comanda-container">
     <div class="comanda-header">
         <a href="{% url 'garzon_home' %}" class="back-arrow">←</a>
-        <h2>Habitación: {{ comanda.numero_habitacion }}</h2>
+        
+        {% if comanda.numero_habitacion %}
+            <h2>Habitación: {{ comanda.numero_habitacion }}</h2>
+        {% elif comanda.cliente_externo %}
+            <h2>Cliente: {{ comanda.cliente_externo.nombre }}</h2>
+        {% else %}
+            <h2>Comanda sin cliente</h2>
+        {% endif %}
+        
         <div class="estado-comanda {% if comanda.estado == 'P' %}pendiente{% else %}enviada{% endif %}">
             {{ comanda.get_estado_display }}
         </div>

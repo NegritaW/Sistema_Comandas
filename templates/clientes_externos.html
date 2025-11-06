@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Clientes Externos{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'garzon/css/garzon.css' %}">
+
+<div class="clientes-container">
+    <div class="clientes-header">
+        <a href="{% url 'garzon_home' %}" class="back-arrow">←</a>
+        <h2>Clientes Externos</h2>
+        <img src="{% static 'img/abba-hotels-logo.png' %}" alt="Logo" class="logo-right">
+    </div>
+
+    <p class="instrucciones">Presione el cliente para gestionar su comanda</p>
+    <p class="subtitulo">Ordenados por más reciente:</p>
+
+    <div id="clientes-list" class="clientes-list">
+        {% for cliente in clientes %}
+        <div class="cliente-card" data-id="{{ cliente.id }}">
+            <div class="cliente-info">
+                <h3>{{ cliente.nombre }}</h3>
+                <p class="fecha">Hace {{ cliente.tiempo }}</p>
+            </div>
+            <img src="{% static 'img/ejemplo.png' %}" class="cliente-img" alt="Cliente">
+        </div>
+        {% empty %}
+        <p>No hay clientes externos registrados.</p>
+        {% endfor %}
+    </div>
+
+    <div class="nuevo-cliente">
+        <label for="nombre-cliente">Ingrese el nombre del Cliente:</label>
+        <input type="text" id="nombre-cliente" placeholder="Ej: Juan Pérez">
+        <button id="add-cliente-btn">Añadir Cliente Nuevo</button>
+    </div>
+</div>
+
+<script>
+    const csrf = '{{ csrf_token }}';
+</script>
+<script src="{% static 'garzon/js/clientes_externos.js' %}"></script>
+{% endblock %}

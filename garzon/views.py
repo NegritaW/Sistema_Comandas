@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.utils.timezone import now
+from datetime import timedelta
 from django.http import JsonResponse
-from .models import Comanda, ComandaItem
+from .models import Comanda, ComandaItem, ClienteExterno
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # Hardcodeamos el menú (podrías moverlo a JSON o DB después)
 MENU = {
@@ -113,3 +117,43 @@ def enviar_comanda(request, comanda_id):
     comanda.save()
     # devolver url de redirección al home del garzón
     return JsonResponse({'ok': True, 'redirect': reverse('garzon_home')})
+
+def clientes_externos(request):
+    clientes = ClienteExterno.objects.order_by('-created_at')
+    lista = []
+    for c in clientes:
+        diff = now() - c.created_at
+        if diff < timedelta(minutes=1):
+            tiempo = "unos segundos"
+        elif diff < timedelta(hours=1):
+            tiempo = f"{int(diff.seconds/60)} min"
+        else:
+            tiempo = f"{int(diff.seconds/3600)} h"
+        lista.append({"id": c.id, "nombre": c.nombre, "tiempo": tiempo})
+    return render(request, 'clientes_externos.html', {'clientes': lista})
+
+
+
+@csrf_exempt
+def agregar_cliente_externo(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        nombre = data.get("nombre")
+        if not nombre:
+            return JsonResponse({"ok": False})
+        cliente = ClienteExterno.objects.create(nombre=nombre)
+        # Crear su comanda vacía automáticamente
+        comanda = Comanda.objects.create(cliente_externo=cliente, estado='P')
+        return JsonResponse({"ok": True, "id": cliente.id, "nombre": cliente.nombre})
+    return JsonResponse({"ok": False})
+
+@login_required
+def comanda_cliente(request, cliente_id):
+    cliente = get_object_or_404(ClienteExterno, id=cliente_id)
+    # Buscar si ya tiene una comanda pendiente, o crear una nueva
+    comanda, created = Comanda.objects.get_or_create(
+        cliente_externo=cliente,
+        estado='P',
+        defaults={'created_by': request.user}
+    )
+    return redirect('garzon_comanda_detail', comanda_id=comanda.id)
