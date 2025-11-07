@@ -6,6 +6,8 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import Comanda, ComandaItem
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+import json
 from django.conf import settings
 
 # Hardcodeamos el menú (podrías moverlo a JSON o DB después)
