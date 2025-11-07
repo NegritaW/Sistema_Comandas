@@ -1,9 +1,12 @@
+import json
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import Comanda, ComandaItem
 from django.urls import reverse
+from django.conf import settings
 
 # Hardcodeamos el menú (podrías moverlo a JSON o DB después)
 MENU = {
@@ -111,5 +114,26 @@ def enviar_comanda(request, comanda_id):
 
     comanda.estado = 'E'
     comanda.save()
+    # --- Enviar comanda a la app de cocina ---
+    try:
+        cocina_url = getattr(settings, 'SITE_BASE_URL', 'http://localhost:8000') + '/cocina/api/receive/'
+        payload = {
+            "numero_orden": comanda.id,
+            "numero_habitacion": comanda.numero_habitacion,
+            "items": [
+                {
+                    "nombre": it.nombre,
+                    "cantidad": it.cantidad,
+                    "detalles": it.ingredientes
+                }
+                for it in comanda.items.all()
+            ]
+        }
+        # Enviar a cocina
+        requests.post(cocina_url, json=payload, timeout=3)
+    except Exception as e:
+        # Evitamos que un fallo de red rompa el flujo del garzón
+        print(f"[AVISO] No se pudo enviar comanda a cocina: {e}")
+    return redirect('cocina:home_cocina')
     # devolver url de redirección al home del garzón
-    return JsonResponse({'ok': True, 'redirect': reverse('garzon_home')})
+    #return JsonResponse({'ok': True, 'redirect': reverse('garzon_home')})

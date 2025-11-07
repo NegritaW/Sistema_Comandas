@@ -7,4 +7,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', include('login.urls')),
     path('garzon/', include('garzon.urls')),
+    path('cocina/', include('cocina.urls', namespace='cocina')),
 ]

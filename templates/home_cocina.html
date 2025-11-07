@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sistema de Comandas Cocina{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'cocina/css/cocina.css' %}">
+
+<div class="panel-cocina">
+    <h1>Sistema de Comandas Cocina</h1>
+
+    <div id="comandas-container" class="comandas-grid">
+        <!-- Tarjetas generadas por JS -->
+    </div>
+
+    <div id="empty" class="empty" style="display:none;">
+        No hay comandas pendientes.
+    </div>
+</div>
+
+<script>
+const API_LIST = "{% url 'cocina:api_comandas_list' %}";
+const API_MARCAR = (id) => `{% url 'cocina:api_marcar_lista' 'COMANDA_ID' %}`.replace('COMANDA_ID', id);
+const API_ELIMINAR = (id) => `{% url 'cocina:api_eliminar_comanda' 'COMANDA_ID' %}`.replace('COMANDA_ID', id);
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function formatTimeSince(iso) {
+    if (!iso) return '';
+    const then = new Date(iso);
+    const now = new Date();
+    let diff = Math.floor((now - then) / 1000); // segundos
+    const hours = Math.floor(diff / 3600);
+    diff -= hours * 3600;
+    const mins = Math.floor(diff / 60);
+    const secs = diff % 60;
+    if (hours > 0) return `${hours}h ${mins}m ${secs}s`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
+}
+
+function createCard(c) {
+    const div = document.createElement('div');
+    div.className = 'comanda-card';
+    div.dataset.id = c.id;
+
+    // Cabecera
+    const header = document.createElement('div');
+    header.className = 'comanda-header';
+    header.innerHTML = `
+        <div class="num-orden">Orden #${c.numero_orden}</div>
+        <div class="timer" data-iso="${c.confirmado_at}">Tiempo desde Pedido: ${formatTimeSince(c.confirmado_at)}</div>
+    `;
+    div.appendChild(header);
+
+    // Estado LISTO
+    if (c.estado === 'LISTO') {
+        const tag = document.createElement('div');
+        tag.className = 'estado-listo';
+        tag.innerText = 'LISTO';
+        div.appendChild(tag);
+    }
+
+    // Items
+    const itemsDiv = document.createElement('div');
+    itemsDiv.className = 'items-list';
+    (c.items || []).forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+            <div class="item-nombre">${it.nombre} <small style="font-weight:400;">${it.detalles ? '- ' + it.detalles : ''}</small></div>
+            <div class="item-cantidad">x${it.cantidad}</div>
+        `;
+        itemsDiv.appendChild(row);
+    });
+    div.appendChild(itemsDiv);
+
+    // Habitación
+    const hab = document.createElement('div');
+    hab.className = 'habitacion';
+    hab.innerText = c.numero_habitacion ? `Habitación: ${c.numero_habitacion}` : 'Cliente externo';
+    div.appendChild(hab);
+
+    // Botones
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    const btnListo = document.createElement('button');
+    btnListo.className = 'btn-correcto';
+    btnListo.innerText = 'Listo';
+    btnListo.addEventListener('click', () => markListo(c.id));
+    const btnEliminar = document.createElement('button');
+    btnEliminar.className = 'btn-eliminar';
+    btnEliminar.innerText = 'Eliminar';
+    btnEliminar.addEventListener('click', () => eliminar(c.id));
+    actions.appendChild(btnListo);
+    actions.appendChild(btnEliminar);
+    div.appendChild(actions);
+
+    return div;
+}
+
+async function fetchComandas() {
+    try {
+        const resp = await fetch(API_LIST, { credentials: 'same-origin' });
+        const data = await resp.json();
+        if (!data.ok) return;
+        const cont = document.getElementById('comandas-container');
+        cont.innerHTML = '';
+        if (!data.comandas || data.comandas.length === 0) {
+            document.getElementById('empty').style.display = '';
+        } else {
+            document.getElementById('empty').style.display = 'none';
+            data.comandas.forEach(c => cont.appendChild(createCard(c)));
+        }
+    } catch (e) {
+        console.error('Error al obtener comandas', e);
+    }
+}
+
+function tickTimers() {
+    document.querySelectorAll('.timer').forEach(el => {
+        const iso = el.dataset.iso;
+        el.innerText = 'Tiempo desde Pedido: ' + formatTimeSince(iso);
+    });
+}
+
+async function markListo(id) {
+    if (!confirm('¿Marcar comanda como LISTO?')) return;
+    const csrftoken = getCookie('csrftoken');
+    const resp = await fetch(API_MARCAR(id), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+        credentials: 'same-origin'
+    });
+    const data = await resp.json();
+    if (data.ok) await fetchComandas();
+}
+
+async function eliminar(id) {
+    if (!confirm('¿Eliminar comanda? Esta acción no se puede deshacer.')) return;
+    const csrftoken = getCookie('csrftoken');
+    const resp = await fetch(API_ELIMINAR(id), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+        credentials: 'same-origin'
+    });
+    const data = await resp.json();
+    if (data.ok) await fetchComandas();
+}
+
+// Cargar y actualizar automáticamente
+fetchComandas();
+setInterval(fetchComandas, 3000);
+setInterval(tickTimers, 1000);
+</script>
+{% endblock %}
