@@ -48,9 +48,13 @@ def registro_view(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Cuenta registrada correctamente. Espera aprobación del administrador.')
-            return redirect('login')
+            return render(request, 'registro.html', {
+                'form': RegistroForm(), 
+                'registro_exitoso': True
+            })
     else:
         form = RegistroForm()
+
     return render(request, 'registro.html', {'form': form})
 
 

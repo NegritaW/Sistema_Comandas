@@ -74,8 +74,9 @@ button:hover {
 }
 
 .error {
-    color: red;
-    font-size: 0.9em;
+    color: #d62828;      /* rojo intenso */
+    font-weight: bold;
+    margin-top: 5px;
 }
 
 .mensaje {
@@ -124,4 +125,28 @@ button {
 
 button:hover {
     background-color: #087933;
+}
+/*Link de registro bonito uwu*/
+.link-registro {
+    color: #3ddc84; /* verde claro brillante */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.link-registro:hover {
+    color: #2fa864;
+    text-shadow: 0 0 5px rgba(63, 255, 145, 0.5);
+    transform: scale(1.05);
+}
+
+.mensaje-exito {
+    background-color: #d6ffe4;
+    color: #06672d;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 20px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }

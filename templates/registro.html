@@ -22,9 +22,35 @@
     <button type="submit">Registrarme</button>
 </form>
 
-{% for message in messages %}
-<p class="mensaje">{{ message }}</p>
-{% endfor %}
+<!-- MENSAJE Y CONTADOR -->
+{% if messages %}
+    <div class="mensaje-exito">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+        <p>Serás redirigida al inicio de sesión en 
+            <span id="contador">10</span> segundos...
+        </p>
+    </div>
 
-<p>¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+    <script>
+        let segundos = 10;
+        const contador = document.getElementById("contador");
+
+        const intervalo = setInterval(() => {
+            segundos--;
+            contador.textContent = segundos;
+
+            if (segundos <= 0) {
+                clearInterval(intervalo);
+                window.location.href = "{% url 'login' %}";
+            }
+        }, 1000);
+    </script>
+{% endif %}
+
+<p>¿Ya tienes cuenta? 
+    <a href="{% url 'login' %}" class="link-registro">Inicia sesión</a>
+</p>
+
 {% endblock %}
