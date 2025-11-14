@@ -11,7 +11,7 @@
     <!-- Barra superior -->
     <header class="barra-superior">
         <div class="barra-contenido">
-            <img src="{% static 'img/abba-hotels-logo.png' %}" alt="Hotel Abba" class="logo-abba">
+            <img src="{% static 'img/abba-hotels-logo.png' %}" alt="Hotel Abba" class="logo-abba">        
             {% if user.is_authenticated %}
             <a href="{% url 'logout' %}" class="logout-btn">Cerrar sesión</a>
             {% endif %}

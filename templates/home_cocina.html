@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sistema de Comandas Cocina{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'cocina/css/cocina.css' %}">
+
+<style>
+/* SOBREESCRIBIR COMPLETAMENTE EL CONTENEDOR CENTRAL DEL BASE.HTML */
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* CONTENEDOR PRINCIPAL EXPANDIDO */
+.panel-cocina {
+    padding: 20px;
+    width: 100% !important;
+    min-height: 100vh !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    background-color: #f8f9fa !important;
+}
+
+/* TÍTULO CENTRADO */
+.panel-cocina h1 {
+    width: 100% !important;
+    text-align: center !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 !important;
+    font-size: 2.5rem !important;
+    color: #2c3e50 !important;
+}
+
+/* CONTENEDOR DE TARJETAS - RESPONSIVO */
+#comandas-container.comandas-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+    gap: 20px !important;
+    padding: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    background-color: transparent !important;
+}
+
+/* Para pantallas grandes (más de 1200px) - HORIZONTAL con scroll Y CENTRADO */
+@media (min-width: 1200px) {
+    #comandas-container.comandas-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        grid-template-columns: none !important;
+        justify-content: center !important; /* Centrado horizontal */
+        padding: 20px 50px !important; /* Más padding para mejor centrado */
+    }
+    
+    /* Cuando hay pocas tarjetas, centrarlas */
+    #comandas-container.comandas-grid:not(.has-many-cards) {
+        justify-content: center !important;
+    }
+    
+    /* Cuando hay muchas tarjetas, alinear a la izquierda para scroll */
+    #comandas-container.comandas-grid.has-many-cards {
+        justify-content: flex-start !important;
+    }
+}
+
+/* Para pantallas medianas (768px - 1199px) - GRID de 2 columnas */
+@media (min-width: 768px) and (max-width: 1199px) {
+    #comandas-container.comandas-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        justify-items: center !important; /* Centrar tarjetas en el grid */
+    }
+}
+
+/* Para pantallas pequeñas (menos de 768px) - 1 COLUMNA */
+@media (max-width: 767px) {
+    #comandas-container.comandas-grid {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+        justify-items: center !important; /* Centrar tarjetas */
+    }
+    
+    .panel-cocina h1 {
+        font-size: 2rem !important;
+        margin-bottom: 20px !important;
+    }
+}
+
+/* TARJETAS DE COMANDAS - RESPONSIVAS */
+.comanda-card {
+    background: #ffffff !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    text-align: left !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+    min-height: 280px !important;
+    width: 100% !important;
+}
+
+/* En layout horizontal, las tarjetas tienen ancho fijo */
+@media (min-width: 1200px) {
+    .comanda-card {
+        flex: 0 0 auto !important;
+        width: 350px !important;
+        min-width: 350px !important;
+        max-width: 350px !important;
+        margin: 0 10px !important; /* Espacio entre tarjetas centradas */
+    }
+}
+
+/* Centrado adicional para cuando hay pocas tarjetas */
+@media (min-width: 1200px) {
+    #comandas-container.comandas-grid.centered {
+        justify-content: center !important;
+    }
+}
+
+/* Scrollbar solo para layout horizontal */
+@media (min-width: 1200px) {
+    #comandas-container.comandas-grid::-webkit-scrollbar {
+        height: 10px !important;
+    }
+    #comandas-container.comandas-grid::-webkit-scrollbar-track {
+        background: #e9ecef !important;
+        border-radius: 8px !important;
+        margin: 0 50px !important; /* Margen para que no toque los bordes */
+    }
+    #comandas-container.comandas-grid::-webkit-scrollbar-thumb {
+        background: #495057 !important;
+        border-radius: 8px !important;
+    }
+    #comandas-container.comandas-grid::-webkit-scrollbar-thumb:hover {
+        background: #343a40 !important;
+    }
+}
+
+/* Mensaje vacío */
+.empty {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 60px 20px !important;
+    color: #6c757d !important;
+    font-size: 1.3rem !important;
+    margin: 0 !important;
+}
+
+/* Reset del main */
+main {
+    padding: 0 !important;
+    text-align: left !important;
+    max-width: 100% !important;
+}
+</style>
+
+<div class="panel-cocina">
+    <h1>Sistema de Comandas Cocina</h1>
+
+    <div id="comandas-container" class="comandas-grid">
+        <!-- Tarjetas generadas por JS -->
+    </div>
+
+    <div id="empty" class="empty" style="display:none;">
+        No hay comandas pendientes.
+    </div>
+</div>
+
+<script>
+const API_LIST = "{% url 'cocina:api_comandas_list' %}";
+const API_MARCAR = (id) => `{% url 'cocina:api_marcar_lista' 'COMANDA_ID' %}`.replace('COMANDA_ID', id);
+const API_ELIMINAR = (id) => `{% url 'cocina:api_eliminar_comanda' 'COMANDA_ID' %}`.replace('COMANDA_ID', id);
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function formatTimeSince(iso) {
+    if (!iso) return '';
+    const then = new Date(iso);
+    const now = new Date();
+    let diff = Math.floor((now - then) / 1000); // segundos
+    const hours = Math.floor(diff / 3600);
+    diff -= hours * 3600;
+    const mins = Math.floor(diff / 60);
+    const secs = diff % 60;
+    if (hours > 0) return `${hours}h ${mins}m ${secs}s`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
+}
+
+function createCard(c) {
+    const div = document.createElement('div');
+    div.className = 'comanda-card';
+    div.dataset.id = c.id;
+
+    // Cabecera
+    const header = document.createElement('div');
+    header.className = 'comanda-header';
+    header.innerHTML = `
+        <div class="num-orden">Orden #${c.numero_orden}</div>
+        <div class="timer" data-iso="${c.confirmado_at}">Tiempo: ${formatTimeSince(c.confirmado_at)}</div>
+    `;
+    div.appendChild(header);
+
+    // Estado LISTO
+    if (c.estado === 'LISTO') {
+        const tag = document.createElement('div');
+        tag.className = 'estado-listo';
+        tag.innerText = 'LISTO';
+        div.appendChild(tag);
+    }
+
+    // Items
+    const itemsDiv = document.createElement('div');
+    itemsDiv.className = 'items-list';
+    (c.items || []).forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+            <div class="item-nombre">${it.nombre} <small style="font-weight:400;">${it.detalles ? '- ' + it.detalles : ''}</small></div>
+            <div class="item-cantidad">x${it.cantidad}</div>
+        `;
+        itemsDiv.appendChild(row);
+    });
+    div.appendChild(itemsDiv);
+
+    // Habitación
+    const hab = document.createElement('div');
+    hab.className = 'habitacion';
+    hab.innerText = c.numero_habitacion ? `Habitación: ${c.numero_habitacion}` : 'Cliente externo';
+    div.appendChild(hab);
+
+    // Botones
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    const btnListo = document.createElement('button');
+    btnListo.className = 'btn-correcto';
+    btnListo.innerText = 'Listo';
+    btnListo.addEventListener('click', () => markListo(c.id));
+    const btnEliminar = document.createElement('button');
+    btnEliminar.className = 'btn-eliminar';
+    btnEliminar.innerText = 'Eliminar';
+    btnEliminar.addEventListener('click', () => eliminar(c.id));
+    actions.appendChild(btnListo);
+    actions.appendChild(btnEliminar);
+    div.appendChild(actions);
+
+    return div;
+}
+
+// Función para calcular si hay muchas tarjetas y ajustar el centrado
+function ajustarCentrado() {
+    const cont = document.getElementById('comandas-container');
+    if (!cont) return;
+    
+    const cards = cont.getElementsByClassName('comanda-card');
+    const containerWidth = cont.clientWidth;
+    const cardWidth = 350 + 20; // ancho de tarjeta + gap
+    const totalCardsWidth = cards.length * cardWidth;
+    
+    // Si el ancho total de las tarjetas es mayor que el contenedor, hay muchas tarjetas
+    if (totalCardsWidth > containerWidth) {
+        cont.classList.add('has-many-cards');
+        cont.classList.remove('centered');
+    } else {
+        cont.classList.remove('has-many-cards');
+        cont.classList.add('centered');
+    }
+}
+
+async function fetchComandas() {
+    try {
+        const resp = await fetch(API_LIST, { credentials: 'same-origin' });
+        const data = await resp.json();
+        if (!data.ok) return;
+        const cont = document.getElementById('comandas-container');
+        cont.innerHTML = '';
+        if (!data.comandas || data.comandas.length === 0) {
+            document.getElementById('empty').style.display = '';
+        } else {
+            document.getElementById('empty').style.display = 'none';
+            data.comandas.forEach(c => cont.appendChild(createCard(c)));
+            
+            // Ajustar el centrado después de cargar las tarjetas
+            setTimeout(ajustarCentrado, 100);
+        }
+    } catch (e) {
+        console.error('Error al obtener comandas', e);
+    }
+}
+
+function tickTimers() {
+    document.querySelectorAll('.timer').forEach(el => {
+        const iso = el.dataset.iso;
+        el.innerText = 'Tiempo: ' + formatTimeSince(iso);
+    });
+}
+
+async function markListo(id) {
+    if (!confirm('¿Marcar comanda como LISTO?')) return;
+    const csrftoken = getCookie('csrftoken');
+    const resp = await fetch(API_MARCAR(id), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+        credentials: 'same-origin'
+    });
+    const data = await resp.json();
+    if (data.ok) await fetchComandas();
+}
+
+async function eliminar(id) {
+    if (!confirm('¿Eliminar comanda? Esta acción no se puede deshacer.')) return;
+    const csrftoken = getCookie('csrftoken');
+    const resp = await fetch(API_ELIMINAR(id), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
+        credentials: 'same-origin'
+    });
+    const data = await resp.json();
+    if (data.ok) await fetchComandas();
+}
+
+// Cargar y actualizar automáticamente
+fetchComandas();
+setInterval(fetchComandas, 3000);
+setInterval(tickTimers, 1000);
+
+// Ajustar centrado cuando cambia el tamaño de la ventana
+window.addEventListener('resize', ajustarCentrado);
+</script>
+{% endblock %}

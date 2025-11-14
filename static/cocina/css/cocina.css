@@ -1,0 +1,109 @@
+/* cocina.css - SOLO ESTILOS DE CONTENIDO, NO LAYOUT */
+.panel-cocina h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #777;
+    font-size: 1.3rem;
+}
+
+/* Estilos básicos para el contenido de las tarjetas */
+.comanda-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.num-orden {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #0b8a3e;
+}
+
+.timer {
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.items-list {
+    margin-top: 12px;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+.item-nombre {
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+}
+
+.item-cantidad {
+    color: #444;
+    margin-left: 15px;
+    font-weight: bold;
+}
+
+.habitacion {
+    margin-top: 12px;
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.card-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-correcto, .btn-eliminar {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.btn-correcto { 
+    background: #0b8a3e; 
+    color: white; 
+}
+.btn-correcto:hover { 
+    background: #087933; 
+}
+
+.btn-eliminar { 
+    background: #d62828; 
+    color: white; 
+}
+.btn-eliminar:hover { 
+    background: #b71c1c; 
+}
+
+.estado-listo {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #fff3cd;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #856404;
+    font-size: 0.9rem;
+}
