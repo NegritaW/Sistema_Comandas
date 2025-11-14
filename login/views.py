@@ -11,7 +11,7 @@ def redirect_by_role(user):
     if rol == "garzon":
         return 'garzon_home'
     if rol == "cocina":
-        return 'home_cocina'
+        return 'cocina:home_cocina'
     if rol == "gerencia":
         return 'home_gerencia'
     if user.is_superuser or rol == "admin":
