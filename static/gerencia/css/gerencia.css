@@ -1,0 +1,361 @@
+/* SOBREESCRIBIR CONTENEDOR CENTRAL PARA GERENCIA */
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* CONTENEDOR PRINCIPAL EXPANDIDO */
+.panel-gerencia {
+    padding: 20px;
+    width: 100% !important;
+    min-height: 100vh !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    background-color: #f8f9fa !important;
+}
+
+/* HEADER DE GERENCIA */
+.gerencia-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.gerencia-header h1 {
+    margin: 0 0 20px 0;
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+/* NAVEGACIÓN */
+.gerencia-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 0 20px;
+}
+
+.nav-link {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.nav-link:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+}
+
+.nav-link.active {
+    background: #0b8a3e;
+    border-color: #087933;
+    box-shadow: 0 4px 8px rgba(11, 138, 62, 0.3);
+}
+
+/* CONTENIDO PRINCIPAL */
+.gerencia-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ESTADÍSTICAS RÁPIDAS */
+.estadisticas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.estadistica-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.estadistica-card:hover {
+    transform: translateY(-5px);
+}
+
+.estadistica-valor {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 10px 0;
+}
+
+.estadistica-label {
+    color: #666;
+    font-size: 1rem;
+}
+
+.estadistica-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* GRID DE CONTENIDO */
+.contenido-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.grid-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.grid-card h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #0b8a3e;
+    padding-bottom: 10px;
+}
+
+/* TABLAS */
+.tabla-gerencia {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.tabla-gerencia th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #0b8a3e;
+}
+
+.tabla-gerencia td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-gerencia tr:hover {
+    background: #f8f9fa;
+}
+
+/* FORMULARIOS */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #0b8a3e;
+}
+
+/* BOTONES */
+.btn-gerencia {
+    background: #0b8a3e;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-gerencia:hover {
+    background: #087933;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(11, 138, 62, 0.3);
+}
+
+.btn-secundario {
+    background: #6c757d;
+}
+
+.btn-secundario:hover {
+    background: #545b62;
+}
+
+/* GRAFICOS */
+.grafico-container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.grafico-container canvas {
+    max-height: 400px;
+}
+
+/* FILTROS */
+.filtros-container {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+}
+
+.filtros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    align-items: end;
+}
+
+/* PRODUCTOS */
+.lista-productos {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.producto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background 0.3s ease;
+}
+
+.producto-item:hover {
+    background: #f8f9fa;
+}
+
+.producto-info h4 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+}
+
+.producto-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.precio-actual {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #0b8a3e;
+}
+
+.form-precio {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-precio {
+    width: 120px;
+    padding: 8px 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    text-align: center;
+}
+
+/* HISTORIAL */
+.historial-item {
+    padding: 15px;
+    border-left: 4px solid #0b8a3e;
+    background: white;
+    margin-bottom: 15px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.cambio-positivo {
+    border-left-color: #28a745;
+}
+
+.cambio-negativo {
+    border-left-color: #dc3545;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .gerencia-nav {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .nav-link {
+        width: 200px;
+        text-align: center;
+    }
+    
+    .contenido-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .estadisticas-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filtros-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .producto-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .form-precio {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .panel-gerencia {
+        padding: 10px;
+    }
+    
+    .gerencia-content {
+        padding: 10px;
+    }
+    
+    .grid-card {
+        padding: 15px;
+    }
+}

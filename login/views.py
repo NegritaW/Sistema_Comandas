@@ -7,17 +7,23 @@ from .forms import RegistroForm
 
 # --- Función que decide a qué "home" va cada rol ---
 def redirect_by_role(user):
-    rol = (user.rol or "").lower()
-    if rol == "garzon":
-        return 'garzon_home'
-    if rol == "cocina":
+    """
+    Redirige según el campo 'rol' del usuario
+    """
+    # Usar el campo 'rol' del modelo de usuario personalizado
+    rol = (getattr(user, 'rol', '') or "").lower().strip()
+    
+    if rol == "garzon" or rol == "garzón":
+        return 'garzon:garzon_home'
+    elif rol == "cocina":
         return 'cocina:home_cocina'
-    if rol == "gerencia":
-        return 'home_gerencia'
-    if user.is_superuser or rol == "admin":
+    elif rol == "gerencia":
+        return 'gerencia:panel_gerencia'
+    elif user.is_superuser or rol == "admin":
         return 'admin:index'
-    return 'home_general'
-
+    else:
+        # Por defecto, redirigir a garzón
+        return 'garzon:garzon_home'
 
 # --- LOGIN ---
 def login_view(request):
@@ -32,8 +38,10 @@ def login_view(request):
                 destino = redirect_by_role(user)
                 try:
                     return redirect(destino)
-                except Exception:
-                    return redirect('home_general')
+                except Exception as e:
+                    print(f"Error en redirección: {e}")
+                    # Fallback a garzon si hay error
+                    return redirect('garzon:garzon_home')
             else:
                 messages.error(request, 'Tu cuenta está pendiente de activación.')
         else:
@@ -56,34 +64,6 @@ def registro_view(request):
         form = RegistroForm()
 
     return render(request, 'registro.html', {'form': form})
-
-
-# --- HOME por rol (todas usan el mismo template "home.html") ---
-@login_required
-def home_cocina(request):
-    return render(request, 'home.html', {
-        'titulo': 'Panel Cocina 🔪',
-        'mensaje': f'Bienvenido {request.user.nombre_completo}, aquí verás los pedidos en preparación.',
-        'rol': 'cocina'
-    })
-
-
-@login_required
-def home_gerencia(request):
-    return render(request, 'home.html', {
-        'titulo': 'Panel Gerencia 📊',
-        'mensaje': f'Bienvenido {request.user.nombre_completo}, aquí podrás consultar reportes y métricas.',
-        'rol': 'gerencia'
-    })
-
-
-@login_required
-def home_general(request):
-    return render(request, 'home.html', {
-        'titulo': 'Inicio General',
-        'mensaje': f'Hola {request.user.nombre_completo}, bienvenido al sistema.',
-        'rol': 'general'
-    })
 
 
 # --- LOGOUT ---

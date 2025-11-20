@@ -8,4 +8,5 @@ urlpatterns = [
     path('login/', include('login.urls')),
     path('garzon/', include('garzon.urls')),
     path('cocina/', include('cocina.urls', namespace='cocina')),
+    path('gerencia/', include('gerencia.urls')),
 ]

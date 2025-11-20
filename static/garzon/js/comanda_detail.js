@@ -142,17 +142,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('cancel-send').addEventListener('click', () => modal.style.display = 'none');
 
     document.getElementById('confirm-send').addEventListener('click', () => {
-        const payload = {items: Object.values(cart)};
-        fetch(`/garzon/enviar_comanda/${comandaId}/`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json','X-CSRFToken': csrf},
-            body: JSON.stringify(payload)
-        }).then(r => r.json()).then(res => {
-            if (res.ok) {
-                window.location.href = res.redirect;
-            } else alert('Error al enviar comanda.');
-        });
+    const payload = {items: Object.values(cart)};
+    
+    fetch(`/garzon/comanda/${comandaId}/enviar/`, {  // ← URL corregida
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRFToken': csrf},
+        body: JSON.stringify(payload)
+    }).then(r => r.json()).then(res => {
+        if (res.ok) {
+            window.location.href = res.redirect;  // Esto redirigirá a garzon_home
+        } else alert('Error al enviar comanda.');
     });
+});
 
     // --- Tabs ---
     tabs.forEach((tab, i) => {

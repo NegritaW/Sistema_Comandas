@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Precios - Gerencia{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'gerencia/css/gerencia.css' %}">
+
+<style>
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.historial-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Estilos para los botones de filtro */
+.botones-filtro {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.botones-filtro .btn-gerencia {
+    flex: 1;
+    min-width: 120px;
+}
+
+@media (max-width: 768px) {
+    .botones-filtro {
+        flex-direction: column;
+    }
+}
+</style>
+
+<div class="panel-gerencia">
+    <!-- Header -->
+    <div class="gerencia-header">
+        <h1>Historial de Precios</h1>
+        <nav class="gerencia-nav">
+            <a href="{% url 'gerencia:panel_gerencia' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'gerencia:gestion_precios' %}" class="nav-link">Gestión de Precios</a>
+            <a href="{% url 'gerencia:historial_precios' %}" class="nav-link active">Historial de Precios</a>
+            <a href="{% url 'gerencia:reporte_ventas' %}" class="nav-link">Reporte de Ventas</a>
+            <a href="{% url 'gerencia:reporte_productos' %}" class="nav-link">Productos Más Vendidos</a>
+        </nav>
+    </div>
+
+    <div class="gerencia-content">
+        <!-- Filtros -->
+        <div class="filtros-container">
+            <h3>Filtros del Historial</h3>
+            <form method="get" class="filtros-grid">
+                <div class="form-group">
+                    <label for="producto">Producto:</label>
+                    <select name="producto" id="producto" class="form-control">
+                        <option value="">Todos los productos</option>
+                        {% for producto in productos %}
+                        <option value="{{ producto.id }}" {% if request.GET.producto == producto.id|stringformat:"i" %}selected{% endif %}>
+                            {{ producto.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fecha_desde">Fecha desde:</label>
+                    <input type="date" name="fecha_desde" id="fecha_desde" class="form-control" value="{{ request.GET.fecha_desde }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="fecha_hasta">Fecha hasta:</label>
+                    <input type="date" name="fecha_hasta" id="fecha_hasta" class="form-control" value="{{ request.GET.fecha_hasta }}">
+                </div>
+                
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <div class="botones-filtro">
+                        <button type="submit" class="btn-gerencia">Aplicar Filtros</button>
+                        <a href="{% url 'gerencia:historial_precios' %}" class="btn-gerencia btn-secundario">Limpiar Filtros</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Historial -->
+        <div class="grid-card">
+            <h3>Historial de Cambios de Precios</h3>
+            
+            {% if historial %}
+            <div class="historial-container">
+                {% for cambio in historial %}
+                <div class="historial-item {% if cambio.diferencia > 0 %}cambio-positivo{% else %}cambio-negativo{% endif %}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div>
+                            <h4 style="margin: 0 0 5px 0; color: #2c3e50;">{{ cambio.producto.nombre }}</h4>
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                                Categoría: {{ cambio.producto.categoria.nombre }}
+                            </p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.2rem; font-weight: bold;">
+                                ${{ cambio.precio_anterior }} → ${{ cambio.precio_nuevo }}
+                            </div>
+                            <div style="color: {% if cambio.diferencia > 0 %}#28a745{% else %}#dc3545{% endif %}; font-weight: 600;">
+                                {% if cambio.diferencia > 0 %}+{% endif %}${{ cambio.diferencia|floatformat:2 }}
+                                ({% if cambio.diferencia > 0 %}+{% endif %}{{ cambio.porcentaje_cambio|floatformat:1 }}%)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #666;">
+                        <div>
+                            <strong>Razón:</strong> {{ cambio.razon_cambio|default:"Sin especificar" }}
+                        </div>
+                        <div>
+                            <strong>Usuario:</strong> {{ cambio.usuario.username }}
+                            <strong>• Fecha:</strong> {{ cambio.fecha_cambio|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center; color: #666;">
+                Mostrando {{ historial|length }} cambios de precio
+            </div>
+            
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <h3>No hay cambios de precio registrados</h3>
+                <p>Los cambios de precio que realices aparecerán aquí.</p>
+                <a href="{% url 'gerencia:gestion_precios' %}" class="btn-gerencia" style="margin-top: 20px;">
+                    Ir a Gestión de Precios
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

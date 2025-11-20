@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte de Ventas - Gerencia{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'gerencia/css/gerencia.css' %}">
+
+<style>
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.grafico-container {
+    min-height: 400px;
+}
+
+/* Estilos para alinear los filtros correctamente */
+.filtros-container-centrado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.filtros-fila {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filtros-fila .form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.boton-centrado {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.boton-centrado .btn-gerencia {
+    min-width: 200px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Asegurar consistencia en los inputs */
+.filtros-fila .form-group label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+}
+
+.filtros-fila .form-group .form-control {
+    height: 42px;
+    text-align: center;
+}
+
+/* Versión móvil */
+@media (max-width: 768px) {
+    .filtros-fila {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .filtros-fila .form-group {
+        min-width: 250px;
+    }
+    
+    .boton-centrado .btn-gerencia {
+        min-width: 250px;
+    }
+}
+</style>
+
+<div class="panel-gerencia">
+    <!-- Header -->
+    <div class="gerencia-header">
+        <h1>Reporte de Ventas</h1>
+        <nav class="gerencia-nav">
+            <a href="{% url 'gerencia:panel_gerencia' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'gerencia:gestion_precios' %}" class="nav-link">Gestión de Precios</a>
+            <a href="{% url 'gerencia:historial_precios' %}" class="nav-link">Historial de Precios</a>
+            <a href="{% url 'gerencia:reporte_ventas' %}" class="nav-link active">Reporte de Ventas</a>
+            <a href="{% url 'gerencia:reporte_productos' %}" class="nav-link">Productos Más Vendidos</a>
+        </nav>
+    </div>
+
+    <div class="gerencia-content">
+        <!-- Filtros -->
+        <div class="filtros-container">
+            <h3>Filtros del Reporte</h3>
+            <div class="filtros-container-centrado">
+                <div class="filtros-fila">
+                    <div class="form-group">
+                        <label for="fecha_inicio">Fecha inicio:</label>
+                        <input type="date" id="fecha_inicio" class="form-control" value="{{ hoy|date:'Y-m-d' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_fin">Fecha fin:</label>
+                        <input type="date" id="fecha_fin" class="form-control" value="{{ hoy|date:'Y-m-d' }}">
+                    </div>
+                </div>
+                
+                <div class="boton-centrado">
+                    <button onclick="cargarDatosVentas()" class="btn-gerencia">Generar Reporte</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de ventas -->
+        <div class="grafico-container">
+            <h3>Evolución de Ventas</h3>
+            <canvas id="graficoVentas"></canvas>
+        </div>
+
+        <!-- Tabla de datos -->
+        <div class="grid-card">
+            <h3>Detalle de Ventas</h3>
+            <div id="tabla-datos" style="text-align: center; color: #666; padding: 40px;">
+                Seleccione los filtros y haga clic en "Generar Reporte"
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let graficoVentas = null;
+
+// Función para cargar datos de ventas
+async function cargarDatosVentas() {
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin = document.getElementById('fecha_fin').value;
+    
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor seleccione ambas fechas');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/gerencia/api/ventas/?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`);
+        const data = await response.json();
+        
+        // Actualizar gráfico
+        actualizarGrafico(data.datos);
+        
+        // Actualizar tabla
+        actualizarTabla(data.datos);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar los datos');
+    }
+}
+
+// Función para actualizar el gráfico
+function actualizarGrafico(datos) {
+    const ctx = document.getElementById('graficoVentas').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (graficoVentas) {
+        graficoVentas.destroy();
+    }
+    
+    const labels = datos.map(item => item.fecha);
+    const ventas = datos.map(item => item.ventas);
+    
+    graficoVentas = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Número de Ventas',
+                data: ventas,
+                borderColor: '#0b8a3e',
+                backgroundColor: 'rgba(11, 138, 62, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Evolución de Ventas'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Ventas'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            if (Number.isInteger(value)) {
+                                return value;
+                            }
+                        },
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Fechas'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Función para actualizar la tabla
+function actualizarTabla(datos) {
+    const tablaContainer = document.getElementById('tabla-datos');
+    
+    if (datos.length === 0) {
+        tablaContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No hay datos para el período seleccionado</div>';
+        return;
+    }
+    
+    let html = `
+        <table class="tabla-gerencia">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Ventas</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    let totalVentas = 0;
+    
+    datos.forEach(item => {
+        totalVentas += item.ventas;
+        html += `
+            <tr>
+                <td>${item.fecha}</td>
+                <td><strong>${item.ventas}</strong></td>
+            </tr>
+        `;
+    });
+    
+    html += `
+            </tbody>
+            <tfoot>
+                <tr style="background: #f8f9fa; font-weight: bold;">
+                    <td>TOTAL</td>
+                    <td>${totalVentas}</td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <div style="margin-top: 20px; color: #666;">
+            Mostrando ${datos.length} días - Total de ventas: ${totalVentas}
+        </div>
+    `;
+    
+    tablaContainer.innerHTML = html;
+}
+
+// Cargar datos al iniciar (últimos 30 días)
+window.addEventListener('load', function() {
+    const fechaFin = new Date();
+    const fechaInicio = new Date();
+    fechaInicio.setDate(fechaInicio.getDate() - 30);
+    
+    document.getElementById('fecha_inicio').value = fechaInicio.toISOString().split('T')[0];
+    document.getElementById('fecha_fin').value = fechaFin.toISOString().split('T')[0];
+    
+    // Cargar datos iniciales
+    setTimeout(() => cargarDatosVentas(), 500);
+});
+</script>
+{% endblock %}

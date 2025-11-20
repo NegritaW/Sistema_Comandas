@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+app_name = 'garzon'
 urlpatterns = [
     path('', views.garzon_home, name='garzon_home'),
     path('crear/', views.crear_comanda, name='garzon_crear_comanda'),

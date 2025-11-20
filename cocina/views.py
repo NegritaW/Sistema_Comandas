@@ -1,134 +1,103 @@
-import uuid
-import json
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
-from django.views.decorators.http import require_POST, require_GET
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from django.utils import timezone
-
-# Almacenamiento en memoria (temporal)
-# Cada comanda: {
-#   "id": str,
-#   "numero_orden": int,
-#   "confirmado_at": ISO datetime str,
-#   "items": [ {"nombre":..., "cantidad":..., "detalles":...}, ... ],
-#   "numero_habitacion": int or None,
-#   "estado": "EN_PROCESO"|"LISTO"
-# }
-COMMANDS = []
-
-# Ejemplos hardcodeados iniciales (opcional)
-COMMANDS.extend([
-    {
-        "id": str(uuid.uuid4()),
-        "numero_orden": 101,
-        "confirmado_at": timezone.now().isoformat(),
-        "items": [
-            {"nombre": "Lomo a lo pobre", "cantidad": 1, "detalles": "Sin cebolla"},
-            {"nombre": "Coca-Cola 500ml", "cantidad": 2, "detalles": ""}
-        ],
-        "numero_habitacion": 12,
-        "estado": "EN_PROCESO"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "numero_orden": 102,
-        "confirmado_at": timezone.now().isoformat(),
-        "items": [
-            {"nombre": "Pasta Alfredo", "cantidad": 1, "detalles": "Extra parmesano"},
-            {"nombre": "Tiramisú", "cantidad": 1, "detalles": "Sin licor"}
-        ],
-        "numero_habitacion": None,
-        "estado": "EN_PROCESO"
-    }
-])
-
+from garzon.models import Comanda, ComandaItem
+import json
 
 @login_required
 def home_cocina(request):
     """
-    Página principal que muestra las comandas.
-    El template hace polling a /api/comandas/ para obtener la lista.
+    Vista principal de cocina - renderiza el template
     """
-    return render(request, 'home_cocina.html', {})
+    return render(request, 'home_cocina.html')
 
-
-@require_GET
 @login_required
 def api_comandas_list(request):
     """
-    Devuelve JSON con las comandas (ordenadas por confirmado_at asc).
+    API para obtener lista de comandas en formato compatible con el template
     """
-    # ordenar por confirmado_at
-    def key_fn(c):
-        return c.get('confirmado_at') or ''
-    data = sorted(COMMANDS, key=key_fn)
-    return JsonResponse({"ok": True, "comandas": data})
+    # Comandas en estado 'Pendiente'
+    comandas = Comanda.objects.filter(estado='E').prefetch_related('items__producto').order_by('created_at')
+    
+    comandas_data = []
+    for comanda in comandas:
+        # Calcular tiempo transcurrido
+        tiempo_transcurrido = timezone.now() - comanda.created_at
+        minutos = int(tiempo_transcurrido.total_seconds() // 60)
+        segundos = int(tiempo_transcurrido.total_seconds() % 60)
+        
+        # Formatear items para el template
+        items_data = []
+        for item in comanda.items.all():
+            # CORREGIDO: Usar solo el campo 'notas' que existe en el modelo
+            detalles = item.notas or ''
+            
+            items_data.append({
+                'nombre': item.producto.nombre if item.producto else item.nombre,
+                'cantidad': item.cantidad,
+                'detalles': detalles
+            })
+        
+        comandas_data.append({
+            'id': comanda.id,
+            'numero_orden': comanda.id,  # Para compatibilidad con template
+            'numero_habitacion': comanda.numero_habitacion,
+            'confirmado_at': comanda.created_at.isoformat(),  # Para el timer
+            'estado': 'PENDIENTE',  # Para compatibilidad
+            'items': items_data,
+            'tiempo_transcurrido': f"{minutos}m {segundos}s"
+        })
+    
+    return JsonResponse({'ok': True, 'comandas': comandas_data})
 
-
-@require_POST
 @login_required
-def api_receive_comanda(request):
-    """
-    Endpoint que la app de garzón puede llamar para enviar una comanda.
-    Espera JSON con:
-    {
-      "numero_orden": 123,
-      "numero_habitacion": 5 | null,
-      "items": [{ "nombre": "...", "cantidad": 1, "detalles": "..." }, ... ]
-    }
-    Responde con la comanda creada.
-    """
-    try:
-        payload = json.loads(request.body.decode('utf-8') or '{}')
-    except json.JSONDecodeError:
-        return HttpResponseBadRequest("JSON inválido")
-
-    numero_orden = payload.get('numero_orden')
-    items = payload.get('items', [])
-    numero_habitacion = payload.get('numero_habitacion')
-
-    if not numero_orden or not isinstance(items, list):
-        return HttpResponseBadRequest("Falta numero_orden o items")
-
-    comanda = {
-        "id": str(uuid.uuid4()),
-        "numero_orden": numero_orden,
-        "confirmado_at": timezone.now().isoformat(),
-        "items": items,
-        "numero_habitacion": numero_habitacion,
-        "estado": "EN_PROCESO"
-    }
-    COMMANDS.append(comanda)
-    return JsonResponse({"ok": True, "comanda": comanda})
-
-
 @require_POST
-@login_required
 def api_marcar_lista(request, comanda_id):
     """
-    Marca la comanda como LISTO.
+    API para marcar comanda como lista
     """
-    # buscar por id
-    for c in COMMANDS:
-        if c['id'] == comanda_id:
-            c['estado'] = "LISTO"
-            # opcional: guardar cuando se completó
-            c['listo_at'] = timezone.now().isoformat()
-            return JsonResponse({"ok": True, "comanda": c})
-    return JsonResponse({"ok": False, "error": "Comanda no encontrada"}, status=404)
+    comanda = get_object_or_404(Comanda, id=comanda_id, estado='E')
+    comanda.estado = 'L'  # Lista
+    comanda.save()
+    return JsonResponse({'ok': True})
 
-
-@require_POST
 @login_required
+@require_POST
 def api_eliminar_comanda(request, comanda_id):
     """
-    Elimina la comanda (borrar).
+    API para eliminar/anular comanda
     """
-    global COMMANDS
-    before = len(COMMANDS)
-    COMMANDS = [c for c in COMMANDS if c['id'] != comanda_id]
-    after = len(COMMANDS)
-    if before == after:
-        return JsonResponse({"ok": False, "error": "Comanda no encontrada"}, status=404)
-    return JsonResponse({"ok": True})
+    comanda = get_object_or_404(Comanda, id=comanda_id, estado='E')
+    comanda.estado = 'A'  # Anulada
+    comanda.save()
+    return JsonResponse({'ok': True})
+
+# Vistas adicionales para compatibilidad (si las necesitas)
+@login_required
+@require_POST
+def api_receive_comanda(request):
+    """
+    API para recibir comandas (si usas comunicación entre apps)
+    """
+    return JsonResponse({'ok': True, 'message': 'Comanda recibida'})
+
+# Vistas no-API (para usar si prefieres no-AJAX)
+@login_required
+@require_POST
+def marcar_comanda_lista(request, comanda_id):
+    """Vista normal (no API) para marcar como lista"""
+    comanda = get_object_or_404(Comanda, id=comanda_id, estado='E')
+    comanda.estado = 'L'
+    comanda.save()
+    return redirect('cocina:home_cocina')
+
+@login_required
+@require_POST
+def anular_comanda(request, comanda_id):
+    """Vista normal (no API) para anular comanda"""
+    comanda = get_object_or_404(Comanda, id=comanda_id, estado='E')
+    comanda.estado = 'A'
+    comanda.save()
+    return redirect('cocina:home_cocina')

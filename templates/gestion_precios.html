@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Precios - Gerencia{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'gerencia/css/gerencia.css' %}">
+
+<style>
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+</style>
+
+<div class="panel-gerencia">
+    <!-- Header -->
+    <div class="gerencia-header">
+        <h1>Gestión de Precios</h1>
+        <nav class="gerencia-nav">
+            <a href="{% url 'gerencia:panel_gerencia' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'gerencia:gestion_precios' %}" class="nav-link active">Gestión de Precios</a>
+            <a href="{% url 'gerencia:historial_precios' %}" class="nav-link">Historial de Precios</a>
+            <a href="{% url 'gerencia:reporte_ventas' %}" class="nav-link">Reporte de Ventas</a>
+            <a href="{% url 'gerencia:reporte_productos' %}" class="nav-link">Productos Más Vendidos</a>
+        </nav>
+    </div>
+
+    <div class="gerencia-content">
+        <!-- Filtros por categoría -->
+        <div class="filtros-container">
+            <h3>Filtrar por Categoría</h3>
+            <div class="filtros-grid">
+                <div class="form-group">
+                    <label for="filtro-categoria">Categoría:</label>
+                    <select id="filtro-categoria" class="form-control">
+                        <option value="todas">Todas las categorías</option>
+                        {% for categoria in categorias %}
+                        <option value="categoria-{{ categoria.id }}">{{ categoria.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="buscar-producto">Buscar producto:</label>
+                    <input type="text" id="buscar-producto" class="form-control" placeholder="Nombre del producto...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de productos -->
+        <div class="grid-card">
+            <h3>Lista de Productos</h3>
+            <div class="lista-productos">
+                {% for categoria in categorias %}
+                <div class="categoria-group" data-categoria="categoria-{{ categoria.id }}">
+                    <h4 style="color: #2c3e50; border-bottom: 2px solid #0b8a3e; padding-bottom: 8px; margin: 25px 0 15px 0;">
+                        {{ categoria.nombre }}
+                    </h4>
+                    
+                    {% for producto in categoria.productos.all %}
+                    <div class="producto-item" data-nombre="{{ producto.nombre|lower }}">
+                        <div class="producto-info">
+                            <h4>{{ producto.nombre }}</h4>
+                            <p>{{ producto.descripcion|default:"Sin descripción" }}</p>
+                        </div>
+                        
+                        <div class="precio-actual" id="precio-actual-{{ producto.id }}">
+                            ${{ producto.precio }}
+                        </div>
+                        
+                        <div class="form-precio">
+                            <input type="number" 
+                                   id="nuevo-precio-{{ producto.id }}" 
+                                   class="input-precio" 
+                                   placeholder="Nuevo precio" 
+                                   min="0" 
+                                   step="0.01"
+                                   value="{{ producto.precio }}">
+                            
+                            <input type="text" 
+                                   id="razon-{{ producto.id }}" 
+                                   class="form-control" 
+                                   placeholder="Razón del cambio"
+                                   style="width: 200px;">
+                            
+                            <button class="btn-gerencia" 
+                                    onclick="actualizarPrecio({{ producto.id }})">
+                                Actualizar
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; color: #666; padding: 20px;">
+                        No hay productos en esta categoría
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filtros
+document.getElementById('filtro-categoria').addEventListener('change', function() {
+    const categoriaSeleccionada = this.value;
+    const gruposCategoria = document.querySelectorAll('.categoria-group');
+    
+    gruposCategoria.forEach(grupo => {
+        if (categoriaSeleccionada === 'todas' || grupo.dataset.categoria === categoriaSeleccionada) {
+            grupo.style.display = 'block';
+        } else {
+            grupo.style.display = 'none';
+        }
+    });
+});
+
+// Búsqueda de productos
+document.getElementById('buscar-producto').addEventListener('input', function() {
+    const busqueda = this.value.toLowerCase();
+    const productos = document.querySelectorAll('.producto-item');
+    
+    productos.forEach(producto => {
+        const nombre = producto.dataset.nombre;
+        if (nombre.includes(busqueda)) {
+            producto.style.display = 'flex';
+        } else {
+            producto.style.display = 'none';
+        }
+    });
+});
+
+// Función para actualizar precio
+async function actualizarPrecio(productoId) {
+    const nuevoPrecio = document.getElementById(`nuevo-precio-${productoId}`).value;
+    const razon = document.getElementById(`razon-${productoId}`).value;
+    
+    if (!nuevoPrecio || nuevoPrecio <= 0) {
+        alert('Por favor ingrese un precio válido');
+        return;
+    }
+    
+    if (!razon.trim()) {
+        alert('Por favor ingrese la razón del cambio de precio');
+        return;
+    }
+    
+    if (!confirm(`¿Está seguro de actualizar el precio a $${nuevoPrecio}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/gerencia/precios/actualizar/${productoId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                'nuevo_precio': nuevoPrecio,
+                'razon': razon
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+            // Actualizar visualización del precio
+            document.getElementById(`precio-actual-${productoId}`).textContent = `$${data.precio_nuevo}`;
+            
+            // Mostrar mensaje de éxito
+            alert(`Precio actualizado exitosamente:\n${data.producto}: $${data.precio_anterior} → $${data.precio_nuevo}`);
+            
+            // Limpiar campos
+            document.getElementById(`razon-${productoId}`).value = '';
+        } else {
+            alert('Error al actualizar el precio: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error de conexión: ' + error);
+    }
+}
+
+// Enter para buscar
+document.getElementById('buscar-producto').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        this.dispatchEvent(new Event('input'));
+    }
+});
+</script>
+{% endblock %}

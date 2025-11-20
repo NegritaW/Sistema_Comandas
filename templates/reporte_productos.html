@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Productos Más Vendidos - Gerencia{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'gerencia/css/gerencia.css' %}">
+
+<style>
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background 0.3s ease;
+}
+
+.ranking-item:hover {
+    background: #f8f9fa;
+}
+
+.ranking-posicion {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    width: 50px;
+    text-align: center;
+}
+
+.ranking-info {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.ranking-stats {
+    text-align: right;
+    min-width: 150px;
+}
+
+/* Estilo para el gráfico */
+.grafico-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.grafico-container canvas {
+    max-height: 400px;
+}
+
+/* Estilos para alinear los filtros correctamente */
+.filtros-container-centrado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.filtros-fila {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filtros-fila .form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.boton-centrado {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.boton-centrado .btn-gerencia {
+    min-width: 200px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Asegurar consistencia en los inputs */
+.filtros-fila .form-group label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+}
+
+.filtros-fila .form-group .form-control {
+    height: 42px;
+    /* Quitamos el text-align: center para los selects */
+}
+
+/* Estilos específicos para el select de categorías */
+.filtros-fila .form-group select.form-control {
+    text-align: left; /* Texto alineado a la izquierda para mejor legibilidad */
+    padding: 8px 12px; /* Padding adecuado para selects */
+    overflow: hidden; /* Previene desbordamiento */
+    text-overflow: ellipsis; /* Muestra "..." si el texto es muy largo */
+    white-space: nowrap; /* Evita que el texto se divida en múltiples líneas */
+}
+
+.filtros-fila .form-group input.form-control {
+    text-align: center; /* Los inputs de fecha mantienen centrado */
+}
+
+/* Estilo para las opciones del select */
+.filtros-fila .form-group select.form-control option {
+    padding: 8px 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Versión móvil */
+@media (max-width: 768px) {
+    .filtros-fila {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .filtros-fila .form-group {
+        min-width: 250px;
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .boton-centrado .btn-gerencia {
+        min-width: 250px;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    /* En móvil, los selects también pueden tener texto centrado */
+    .filtros-fila .form-group select.form-control {
+        text-align: center;
+    }
+}
+
+/* Para pantallas más grandes, ajustamos el ancho automáticamente */
+@media (min-width: 769px) {
+    .filtros-fila .form-group {
+        min-width: 220px; /* Un poco más ancho para acomodar mejor el texto */
+    }
+}
+</style>
+
+<div class="panel-gerencia">
+    <!-- Header -->
+    <div class="gerencia-header">
+        <h1>Productos Más Vendidos</h1>
+        <nav class="gerencia-nav">
+            <a href="{% url 'gerencia:panel_gerencia' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'gerencia:gestion_precios' %}" class="nav-link">Gestión de Precios</a>
+            <a href="{% url 'gerencia:historial_precios' %}" class="nav-link">Historial de Ventas</a>
+            <a href="{% url 'gerencia:reporte_ventas' %}" class="nav-link">Reporte de Ventas</a>
+            <a href="{% url 'gerencia:reporte_productos' %}" class="nav-link active">Productos Más Vendidos</a>
+        </nav>
+    </div>
+
+    <div class="gerencia-content">
+        <!-- Filtros -->
+        <div class="filtros-container">
+            <h3>Filtros del Reporte</h3>
+            <div class="filtros-container-centrado">
+                <div class="filtros-fila">
+                    <div class="form-group">
+                        <label for="categoria_id">Categoría:</label>
+                        <select id="categoria_id" class="form-control">
+                            <option value="todas">Todas las categorías</option>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_inicio_productos">Fecha inicio:</label>
+                        <input type="date" id="fecha_inicio_productos" class="form-control" value="{{ hoy|date:'Y-m-d' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_fin_productos">Fecha fin:</label>
+                        <input type="date" id="fecha_fin_productos" class="form-control" value="{{ hoy|date:'Y-m-d' }}">
+                    </div>
+                </div>
+                
+                <div class="boton-centrado">
+                    <button onclick="cargarProductosMasVendidos()" class="btn-gerencia">Generar Ranking</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de productos -->
+        <div class="grafico-container">
+            <h3>Distribución de Ventas por Producto</h3>
+            <canvas id="graficoProductos"></canvas>
+        </div>
+
+        <!-- Ranking de productos -->
+        <div class="grid-card">
+            <h3>Ranking de Productos Más Vendidos</h3>
+            <div id="ranking-productos" style="text-align: center; color: #666; padding: 40px;">
+                Seleccione los filtros y haga clic en "Generar Ranking"
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let graficoProductos = null;
+
+// Función para cargar productos más vendidos
+async function cargarProductosMasVendidos() {
+    const categoriaId = document.getElementById('categoria_id').value;
+    const fechaInicio = document.getElementById('fecha_inicio_productos').value;
+    const fechaFin = document.getElementById('fecha_fin_productos').value;
+    
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor seleccione ambas fechas');
+        return;
+    }
+    
+    try {
+        let url = `/gerencia/api/productos-mas-vendidos/?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`;
+        if (categoriaId !== 'todas') {
+            url += `&categoria_id=${categoriaId}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // Actualizar gráfico
+        actualizarGraficoProductos(data.datos);
+        
+        // Actualizar ranking
+        actualizarRanking(data.datos);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar los datos');
+    }
+}
+
+// Función para actualizar el gráfico de productos
+function actualizarGraficoProductos(datos) {
+    const ctx = document.getElementById('graficoProductos').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (graficoProductos) {
+        graficoProductos.destroy();
+    }
+    
+    // Tomar solo los primeros 10 productos para el gráfico
+    const datosGrafico = datos.slice(0, 10);
+    const labels = datosGrafico.map(item => item.producto);
+    const cantidades = datosGrafico.map(item => item.cantidad);
+    
+    graficoProductos = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Unidades Vendidas',
+                data: cantidades,
+                backgroundColor: [
+                    '#0b8a3e', '#28a745', '#20c997', '#17a2b8', 
+                    '#6f42c1', '#e83e8c', '#fd7e14', '#ffc107',
+                    '#6610f2', '#d63384'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Top 10 Productos Más Vendidos'
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Unidades Vendidas'
+                    },
+                    // Configuración para mostrar números enteros en el eje Y
+                    ticks: {
+                        callback: function(value) {
+                            if (value % 1 === 0) {
+                                return value;
+                            }
+                        },
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Productos'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Función para actualizar el ranking
+function actualizarRanking(datos) {
+    const rankingContainer = document.getElementById('ranking-productos');
+    
+    if (datos.length === 0) {
+        rankingContainer.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No hay datos de ventas para el período seleccionado</div>';
+        return;
+    }
+    
+    let html = '';
+    let totalUnidades = 0;
+    let totalIngresos = 0;
+    
+    datos.forEach((item, index) => {
+        totalUnidades += item.cantidad;
+        totalIngresos += item.ingresos;
+        
+        const top3 = index < 3;
+        
+        html += `
+            <div class="ranking-item" style="${top3 ? 'background: linear-gradient(135deg, #fff3cd, #ffffff); border-left: 4px solid #ffc107;' : ''}">
+                <div class="ranking-posicion" style="${top3 ? 'color: #ffc107; font-size: 1.8rem;' : ''}">
+                    ${index + 1}
+                </div>
+                <div class="ranking-info">
+                    <h4 style="margin: 0 0 5px 0; ${top3 ? 'color: #856404;' : 'color: #2c3e50;'}">
+                        ${item.producto}
+                        ${top3 ? '' : ''}
+                    </h4>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                        Categoría: ${item.categoria}
+                    </p>
+                </div>
+                <div class="ranking-stats">
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #0b8a3e;">
+                        ${item.cantidad} unidades
+                    </div>
+                    <div style="color: #666; font-size: 0.9rem;">
+                        $${item.ingresos.toLocaleString()}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    // Resumen
+    html += `
+        <div style="margin-top: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: center;">
+                <div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #2c3e50;">Total Unidades</div>
+                    <div style="font-size: 1.5rem; color: #0b8a3e; font-weight: bold;">${totalUnidades}</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #2c3e50;">Total Ingresos</div>
+                    <div style="font-size: 1.5rem; color: #0b8a3e; font-weight: bold;">$${totalIngresos.toLocaleString()}</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: #2c3e50;">Productos en Ranking</div>
+                    <div style="font-size: 1.5rem; color: #0b8a3e; font-weight: bold;">${datos.length}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    rankingContainer.innerHTML = html;
+}
+
+// Cargar datos al iniciar (últimos 30 días)
+window.addEventListener('load', function() {
+    const fechaFin = new Date();
+    const fechaInicio = new Date();
+    fechaInicio.setDate(fechaInicio.getDate() - 30);
+    
+    document.getElementById('fecha_inicio_productos').value = fechaInicio.toISOString().split('T')[0];
+    document.getElementById('fecha_fin_productos').value = fechaFin.toISOString().split('T')[0];
+    
+    // Cargar datos iniciales
+    setTimeout(() => cargarProductosMasVendidos(), 500);
+});
+</script>
+{% endblock %}

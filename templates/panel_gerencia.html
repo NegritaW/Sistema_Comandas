@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel Gerencia - Hotel Abba{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'gerencia/css/gerencia.css' %}">
+
+<style>
+.contenedor-central {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+</style>
+
+<div class="panel-gerencia">
+    <!-- Header -->
+    <div class="gerencia-header">
+        <h1>Panel de Gerencia</h1>
+        <nav class="gerencia-nav">
+            <a href="{% url 'gerencia:panel_gerencia' %}" class="nav-link active">
+                Dashboard
+            </a>
+            <a href="{% url 'gerencia:gestion_precios' %}" class="nav-link">
+                Gestión de Precios
+            </a>
+            <a href="{% url 'gerencia:historial_precios' %}" class="nav-link">
+                Historial de Precios
+            </a>
+            <a href="{% url 'gerencia:reporte_ventas' %}" class="nav-link">
+                Reporte de Ventas
+            </a>
+            <a href="{% url 'gerencia:reporte_productos' %}" class="nav-link">
+                Productos Más Vendidos
+            </a>
+        </nav>
+    </div>
+
+    <!-- Contenido -->
+    <div class="gerencia-content">
+        <!-- Estadísticas rápidas -->
+        <div class="estadisticas-grid">
+            <div class="estadistica-card">
+                <div class="estadistica-icon">Hoy</div>
+                <div class="estadistica-valor">{{ ventas_hoy }}</div>
+                <div class="estadistica-label">Ventas Hoy</div>
+            </div>
+            
+            <div class="estadistica-card">
+                <div class="estadistica-icon">Semana</div>
+                <div class="estadistica-valor">{{ ventas_semana }}</div>
+                <div class="estadistica-label">Ventas Esta Semana</div>
+            </div>
+            
+            <div class="estadistica-card">
+                <div class="estadistica-icon">Ingresos</div>
+                <div class="estadistica-valor">${{ ingresos_hoy|floatformat:0 }}</div>
+                <div class="estadistica-label">Ingresos Hoy</div>
+            </div>
+            
+            <div class="estadistica-card">
+                <div class="estadistica-icon">Mes</div>
+                <div class="estadistica-valor">{{ ventas_mes }}</div>
+                <div class="estadistica-label">Ventas Este Mes</div>
+            </div>
+        </div>
+
+        <!-- Grid de contenido -->
+        <div class="contenido-grid">
+            <!-- Productos más vendidos -->
+            <div class="grid-card">
+                <h3>Productos Más Vendidos (Semana)</h3>
+                <table class="tabla-gerencia">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in productos_mas_vendidos %}
+                        <tr>
+                            <td>{{ producto.producto__nombre }}</td>
+                            <td><strong>{{ producto.total_vendido }}</strong> unidades</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" style="text-align: center; color: #666;">
+                                No hay datos de ventas esta semana
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div class="grid-card">
+                <h3>Acciones Rápidas</h3>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                    <a href="{% url 'gerencia:gestion_precios' %}" class="btn-gerencia" style="text-align: center; text-decoration: none;">
+                        Actualizar Precios
+                    </a>
+                    <a href="{% url 'gerencia:reporte_ventas' %}" class="btn-gerencia btn-secundario" style="text-align: center; text-decoration: none;">
+                        Ver Reportes
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="btn-gerencia btn-secundario" style="text-align: center; text-decoration: none;">
+                        Administración
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

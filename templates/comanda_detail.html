@@ -15,7 +15,7 @@
 
 <div class="comanda-container">
     <div class="comanda-header">
-        <a href="{% url 'garzon_home' %}" class="back-arrow">←</a>
+        <a href="{% url 'garzon:garzon_home' %}" class="back-arrow">←</a>
         
         {% if comanda.numero_habitacion %}
             <h2>Habitación: {{ comanda.numero_habitacion }}</h2>

@@ -177,9 +177,14 @@ main {
 </div>
 
 <script>
+// CORREGIDO: URLs base sin parámetros - los construiremos dinámicamente
 const API_LIST = "{% url 'cocina:api_comandas_list' %}";
-const API_MARCAR = (id) => `{% url 'cocina:api_marcar_lista' 'COMANDA_ID' %}`.replace('COMANDA_ID', id);
-const API_ELIMINAR = (id) => `{% url 'cocina:api_eliminar_comanda' 'COMANDA_ID' %}`.replace('COMANDA_ID', id);
+const API_MARCAR_BASE = "{% url 'cocina:api_marcar_lista' 0 %}".replace('/0/lista/', '/');
+const API_ELIMINAR_BASE = "{% url 'cocina:api_eliminar_comanda' 0 %}".replace('/0/eliminar/', '/');
+
+// Funciones para construir URLs dinámicamente
+const API_MARCAR = (id) => `${API_MARCAR_BASE}${id}/lista/`;
+const API_ELIMINAR = (id) => `${API_ELIMINAR_BASE}${id}/eliminar/`;
 
 function getCookie(name) {
     let cookieValue = null;
