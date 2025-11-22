@@ -78,8 +78,10 @@
                                    id="nuevo-precio-{{ producto.id }}" 
                                    class="input-precio" 
                                    placeholder="Nuevo precio" 
-                                   min="0" 
-                                   step="0.01"
+                                   min="1" 
+                                   step="1"
+                                   pattern="[0-9]*"
+                                   inputmode="numeric"
                                    value="{{ producto.precio }}">
                             
                             <input type="text" 
@@ -136,22 +138,69 @@ document.getElementById('buscar-producto').addEventListener('input', function() 
     });
 });
 
+// Función para validar que sea un número entero
+function validarEntero(input) {
+    // Remover cualquier carácter que no sea número
+    input.value = input.value.replace(/[^0-9]/g, '');
+    
+    // Asegurar que sea al menos 1
+    if (input.value && parseInt(input.value) < 1) {
+        input.value = '1';
+    }
+}
+
+// Aplicar validación a todos los inputs de precio
+document.addEventListener('DOMContentLoaded', function() {
+    const inputsPrecio = document.querySelectorAll('input[type="number"].input-precio');
+    inputsPrecio.forEach(input => {
+        // Validar al cambiar el valor
+        input.addEventListener('input', function() {
+            validarEntero(this);
+        });
+        
+        // Validar al perder el foco
+        input.addEventListener('blur', function() {
+            validarEntero(this);
+        });
+        
+        // Prevenir entrada de decimales
+        input.addEventListener('keydown', function(e) {
+            // Permitir solo números, backspace, delete, tab, etc.
+            if (!/[\d]|Backspace|Delete|Tab|ArrowLeft|ArrowRight|ArrowUp|ArrowDown/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+
 // Función para actualizar precio
 async function actualizarPrecio(productoId) {
-    const nuevoPrecio = document.getElementById(`nuevo-precio-${productoId}`).value;
+    const nuevoPrecioInput = document.getElementById(`nuevo-precio-${productoId}`);
+    const nuevoPrecio = nuevoPrecioInput.value;
     const razon = document.getElementById(`razon-${productoId}`).value;
     
-    if (!nuevoPrecio || nuevoPrecio <= 0) {
-        alert('Por favor ingrese un precio válido');
+    // Validar que sea un número entero
+    if (!nuevoPrecio || isNaN(nuevoPrecio) || !Number.isInteger(parseFloat(nuevoPrecio))) {
+        alert('Por favor ingrese un precio válido (número entero)');
+        nuevoPrecioInput.focus();
+        return;
+    }
+    
+    const precioEntero = parseInt(nuevoPrecio);
+    
+    if (precioEntero < 1) {
+        alert('El precio debe ser al menos $1');
+        nuevoPrecioInput.focus();
         return;
     }
     
     if (!razon.trim()) {
         alert('Por favor ingrese la razón del cambio de precio');
+        document.getElementById(`razon-${productoId}`).focus();
         return;
     }
     
-    if (!confirm(`¿Está seguro de actualizar el precio a $${nuevoPrecio}?`)) {
+    if (!confirm(`¿Está seguro de actualizar el precio a $${precioEntero.toLocaleString()}?`)) {
         return;
     }
     
@@ -163,7 +212,7 @@ async function actualizarPrecio(productoId) {
                 'X-CSRFToken': '{{ csrf_token }}'
             },
             body: JSON.stringify({
-                'nuevo_precio': nuevoPrecio,
+                'nuevo_precio': precioEntero,
                 'razon': razon
             })
         });

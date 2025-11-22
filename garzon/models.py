@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.core.validators import MinValueValidator
 
 class Categoria(models.Model):
     """
@@ -25,7 +26,10 @@ class Producto(models.Model):
     """
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True, null=True)
-    precio = models.DecimalField(max_digits=8, decimal_places=2)
+    precio = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        help_text="Precio en pesos chilenos (entero positivo)"
+    )
     imagen_url = models.CharField(max_length=500, blank=True, null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='productos')
     activo = models.BooleanField(default=True)
@@ -109,7 +113,10 @@ class ComandaItem(models.Model):
     comanda = models.ForeignKey(Comanda, related_name='items', on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     cantidad = models.PositiveIntegerField(default=1)
-    precio_unitario = models.DecimalField(max_digits=8, decimal_places=2)  # Precio al momento del pedido
+    precio_unitario = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        help_text="Precio en pesos chilenos al momento del pedido (entero positivo)"
+    )
     notas = models.TextField(blank=True, null=True)  # Especificaciones del cliente
     created_at = models.DateTimeField(auto_now_add=True)
 
