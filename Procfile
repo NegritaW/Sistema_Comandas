@@ -1,1 +1,0 @@
-web: gunicorn Sistema_Comandas.wsgi
