@@ -1,0 +1,24 @@
+services:
+  - name: sistema-comandas
+    type: web
+    env: python
+    region: ohio             # free más estable
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn Sistema_Comandas.wsgi:application"
+    plan: free               # plan que estás usando
+    autoDeploy: true         # solo build cuando haces push a main
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
